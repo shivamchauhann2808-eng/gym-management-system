@@ -86,6 +86,12 @@ def create_app(config_class=Config):
         app.logger.setLevel(logging.INFO)
         app.logger.info('Gym Management System startup completed.')
         
+    # Global context processor to make standard date library accessible in Jinja2 templates
+    @app.context_processor
+    def inject_global_vars():
+        from datetime import date
+        return dict(date=date)
+
     return app
 
 # User Loader callback required by Flask-Login
