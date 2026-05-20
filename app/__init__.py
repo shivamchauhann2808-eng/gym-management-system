@@ -42,6 +42,11 @@ def create_app(config_class=Config):
     app.register_blueprint(plans_bp, url_prefix='/plans')
     app.register_blueprint(member_panel_bp, url_prefix='/member')
     
+    # Auto-create database tables and seed if empty
+    with app.app_context():
+        from app.utils.seeder import seed_database_if_empty
+        seed_database_if_empty(db)
+        
     # Root route - redirect to dashboard if admin, profile if member, otherwise login
     @app.route('/')
     def index():
