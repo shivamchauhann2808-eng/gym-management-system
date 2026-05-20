@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card p-4 d-flex align-items-center justify-content-between overflow-hidden position-relative">
+            <div>
+                <h4 class="text-white font-weight-bold mb-1">Welcome back, {{ member.full_name }}!</h4>
+                <p class="text-secondary small m-0"><i class="bi bi-clock-history me-1"></i> Checked in and status synced.</p>
+            </div>
+            <div class="d-none d-sm-block bg-info bg-opacity-10 text-info rounded-3 p-3 fs-3">
+                <i class="bi bi-person-heart"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Read-Only Profile Card -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 text-center">
+            <!-- Profile Photo -->
+            <div class="mb-4 d-flex justify-content-center">
+                {% if member.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/' + member.profile_photo) }}" alt="Photo" class="rounded-circle border border-info" style="width: 140px; height: 140px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center text-white font-weight-bold border border-info mx-auto" style="width: 140px; height: 140px; font-size: 3rem;">
+                    {{ member.full_name[:2].upper() }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <h4 class="text-white font-weight-bold mb-1">{{ member.full_name }}</h4>
+            <p class="text-secondary small mb-4"><i class="bi bi-tag-fill me-1"></i> Member ID: #{{ member.id }}</p>
+            
+            <hr class="text-secondary my-4">
+            
+            <!-- Details List -->
+            <div class="text-start">
+                <div class="mb-3 d-flex justify-content-between">
+                    <span class="text-secondary small">Gender</span>
+                    <span class="text-white font-weight-semibold">{{ member.gender }}</span>
+                </div>
+                <div class="mb-3 d-flex justify-content-between">
+                    <span class="text-secondary small">Date of Birth</span>
+                    <span class="text-white font-weight-semibold">{{ member.dob.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="mb-3 d-flex justify-content-between">
+                    <span class="text-secondary small">Phone Number</span>
+                    <span class="text-white font-weight-semibold">{{ member.phone }}</span>
+                </div>
+                <div class="mb-3 d-flex justify-content-between">
+                    <span class="text-secondary small">Email Address</span>
+                    <span class="text-white font-weight-semibold text-break">{{ member.email }}</span>
+                </div>
+                <div class="mb-3">
+                    <span class="text-secondary small d-block mb-1">Residential Address</span>
+                    <span class="text-white font-weight-semibold d-block">
+                        {{ member.address if member.address else 'No address registered' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Membership Subscription Panel -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100 accent-cyan-hover">
+            <h5 class="text-white mb-4"><i class="bi bi-shield-lock-fill text-info me-2"></i>My Membership Status</h5>
+            
+            <!-- Plan Info Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6">
+                    <div class="bg-dark bg-opacity-25 rounded-3 p-3 border border-secondary border-opacity-25">
+                        <small class="text-secondary d-block uppercase small">My Active Plan</small>
+                        <span class="text-white fs-4 font-weight-bold d-block mt-1">{{ member.plan.name }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="bg-dark bg-opacity-25 rounded-3 p-3 border border-secondary border-opacity-25">
+                        <small class="text-secondary d-block uppercase small">Subscription Pricing</small>
+                        <span class="text-info fs-4 font-weight-bold d-block mt-1">${{ "{:,.2f}".format(member.plan.price) }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="text-secondary my-4">
+            
+            <!-- Dates Block -->
+            <div class="row g-4 mb-4">
+                <div class="col-sm-4">
+                    <small class="text-secondary d-block small">Membership Status</small>
+                    <div class="mt-2">
+                        {% if member.status == 'Active' %}
+                        <span class="badge-status badge-active"><i class="bi bi-circle-fill me-1 small"></i>Active</span>
+                        {% elif member.status == 'Expired' %}
+                        <span class="badge-status badge-expired"><i class="bi bi-circle-fill me-1 small"></i>Expired</span>
+                        {% else %}
+                        <span class="badge-status badge-pending"><i class="bi bi-circle-fill me-1 small"></i>Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <small class="text-secondary d-block small">Date Joined</small>
+                    <span class="text-white font-weight-semibold d-block mt-2">
+                        <i class="bi bi-calendar-event text-secondary me-2"></i>{{ member.join_date.strftime('%B %d, %Y') }}
+                    </span>
+                </div>
+                <div class="col-sm-4">
+                    <small class="text-secondary d-block small">Membership Expiry Date</small>
+                    <span class="text-white font-weight-semibold d-block mt-2">
+                        <i class="bi bi-calendar-x text-secondary me-2"></i>{{ member.expiry_date.strftime('%B %d, %Y') }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Subscription time progress bar -->
+            {% if member.status == 'Active' %}
+                {% set total_days = (member.expiry_date - member.join_date).days %}
+                {% set passed_days = (date.today() - member.join_date).days %}
+                {% if total_days > 0 %}
+                    {% set remaining_pct = (((total_days - passed_days) / total_days) * 100)|round(0)|int %}
+                    {% if remaining_pct < 0 %}{% set remaining_pct = 0 %}{% endif %}
+                    {% if remaining_pct > 100 %}{% set remaining_pct = 100 %}{% endif %}
+                {% else %}
+                    {% set remaining_pct = 0 %}
+                {% endif %}
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-secondary">Subscription Duration Remaining</span>
+                        <span class="text-white font-weight-semibold">{{ remaining_pct }}% remaining</span>
+                    </div>
+                    <div class="progress bg-secondary bg-opacity-25" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar {% if remaining_pct < 20 %}bg-danger{% elif remaining_pct < 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" style="width: {{ remaining_pct }}%; border-radius: 5px;" 
+                             aria-valuenow="{{ remaining_pct }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-3 p-3 mt-4">
+                <h6 class="text-warning mb-2"><i class="bi bi-shield-exclamation me-2"></i>Member Notice</h6>
+                <p class="text-secondary small m-0">
+                    This is a secure read-only profile panel. If any personal information is incorrect or needs updating, or if you wish to renew/upgrade your subscription plan, please contact the Front Desk or your Gym Trainer.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

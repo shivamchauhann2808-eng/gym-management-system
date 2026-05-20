@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Metric Cards Grid -->
+<div class="row g-4 mb-4">
+    <!-- Total Members Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-secondary uppercase small font-weight-bold">Total Members</h6>
+                    <h2 class="text-white font-weight-bold mt-1 mb-0">{{ total_members }}</h2>
+                </div>
+                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3 fs-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+            <div class="small text-secondary">
+                <i class="bi bi-arrow-up-short text-success"></i> Registered profiles in system
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Memberships Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-secondary uppercase small font-weight-bold">Active Members</h6>
+                    <h2 class="text-success font-weight-bold mt-1 mb-0">{{ active_members }}</h2>
+                </div>
+                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3 fs-3">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+            </div>
+            <div class="small text-secondary">
+                {% if total_members > 0 %}
+                <i class="bi bi-percent text-success"></i> {{ ((active_members / total_members) * 100)|round(1) }}% of total directory
+                {% else %}
+                <i class="bi bi-percent text-success"></i> 0% of total
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expired Memberships Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-secondary uppercase small font-weight-bold">Expired Members</h6>
+                    <h2 class="text-danger font-weight-bold mt-1 mb-0">{{ expired_members }}</h2>
+                </div>
+                <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-3 fs-3">
+                    <i class="bi bi-person-x-fill"></i>
+                </div>
+            </div>
+            <div class="small text-secondary">
+                {% if total_members > 0 %}
+                <i class="bi bi-arrow-right-short text-danger"></i> {{ ((expired_members / total_members) * 100)|round(1) }}% requires renewal
+                {% else %}
+                <i class="bi bi-arrow-right-short text-danger"></i> 0% requires renewal
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monthly Revenue Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card accent-cyan-hover p-4 h-100 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-secondary uppercase small font-weight-bold">Est. Monthly Revenue</h6>
+                    <h2 class="text-info font-weight-bold mt-1 mb-0">${{ "{:,.2f}".format(monthly_revenue) }}</h2>
+                </div>
+                <div class="bg-info bg-opacity-10 text-info rounded-3 p-3 fs-3">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+            <div class="small text-secondary">
+                <i class="bi bi-graph-up-arrow text-info"></i> Normalized active subscriptions
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Registration Trend Chart -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="text-white mb-4">
+                <i class="bi bi-graph-up text-warning me-2"></i>Registrations Trend (Last 6 Months)
+            </h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="registrationChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plan Distribution Chart -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-white mb-4">
+                <i class="bi bi-pie-chart text-info me-2"></i>Active Subscriptions Breakdown
+            </h5>
+            <div style="height: 300px; position: relative;" class="d-flex align-items-center justify-content-center">
+                {% if active_members > 0 %}
+                <canvas id="planChart"></canvas>
+                {% else %}
+                <div class="text-center text-secondary py-5">
+                    <i class="bi bi-pie-chart-fill fs-1 d-block mb-3 opacity-20"></i>
+                    No active members to analyze.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Registrations Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-white m-0">
+                    <i class="bi bi-clock-history text-warning me-2"></i>Recent Member Registrations
+                </h5>
+                <a href="{{ url_for('members.index') }}" class="btn btn-outline-custom btn-sm py-2 px-3">
+                    View All Directory <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table custom-table text-white">
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Plan Enrolled</th>
+                            <th>Date Joined</th>
+                            <th>Membership Status</th>
+                            <th class="text-end">Operations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_registrations %}
+                            {% for member in recent_registrations %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if member.profile_photo %}
+                                        <img src="{{ url_for('static', filename='uploads/' + member.profile_photo) }}" alt="Photo" class="rounded-circle border border-secondary" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center text-white font-weight-bold border border-secondary" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                            {{ member.full_name[:2].upper() }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <span class="font-weight-semibold d-block">{{ member.full_name }}</span>
+                                            <small class="text-secondary small">{{ member.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-white-50">{{ member.plan.name }}</span>
+                                    <small class="text-secondary d-block small">${{ "{:,.2f}".format(member.plan.price) }}</small>
+                                </td>
+                                <td>
+                                    <span class="text-white-50">{{ member.join_date.strftime('%b %d, %Y') }}</span>
+                                </td>
+                                <td>
+                                    {% if member.status == 'Active' %}
+                                    <span class="badge-status badge-active"><i class="bi bi-circle-fill me-1 small"></i>Active</span>
+                                    {% elif member.status == 'Expired' %}
+                                    <span class="badge-status badge-expired"><i class="bi bi-circle-fill me-1 small"></i>Expired</span>
+                                    {% else %}
+                                    <span class="badge-status badge-pending"><i class="bi bi-circle-fill me-1 small"></i>Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="{{ url_for('members.view', id=member.id) }}" class="btn btn-outline-custom btn-sm px-3" title="Inspect Profile">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('members.edit', id=member.id) }}" class="btn btn-outline-custom btn-sm px-3 text-warning border-secondary-subtle" title="Modify details">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-20"></i>
+                                    No members registered in the system yet.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- ChartJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Registrations line trend chart configuration
+        const regCtx = document.getElementById('registrationChart').getContext('2d');
+        new Chart(regCtx, {
+            type: 'line',
+            data: {
+                labels: {{ months_labels|tojson }},
+                datasets: [{
+                    label: 'Registrations',
+                    data: {{ reg_counts|tojson }},
+                    borderColor: '#ff5e00',
+                    backgroundColor: 'rgba(255, 94, 0, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ff5e00',
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#222631' },
+                        ticks: { color: '#94a3b8', stepSize: 1, beginAtZero: true }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Membership Plan distribution chart
+        {% if active_members > 0 %}
+        const planCtx = document.getElementById('planChart').getContext('2d');
+        const planData = {{ plans_distribution|tojson }};
+        const labels = Object.keys(planData);
+        const data = Object.values(planData);
+        
+        new Chart(planCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#ff5e00', // Orange
+                        '#00d2ff', // Cyan
+                        '#10b981', // Emerald
+                        '#f59e0b', // Amber
+                        '#8b5cf6'  // Purple
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#16181e'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 } }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

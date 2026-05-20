@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('plans.index') }}" class="btn btn-outline-custom">
+        <i class="bi bi-arrow-left me-1"></i> Back to Plans List
+    </a>
+</div>
+
+<div class="glass-card p-4 mx-auto" style="max-width: 600px;">
+    <h5 class="text-white mb-4 border-bottom border-secondary pb-3">
+        {% if plan %}
+        <i class="bi bi-pencil-square text-warning me-2"></i>Modify Membership Plan: {{ plan.name }}
+        {% else %}
+        <i class="bi bi-plus-circle text-warning me-2"></i>Create New Membership Plan
+        {% endif %}
+    </h5>
+    
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <div class="row g-3">
+            <!-- Name -->
+            <div class="col-12">
+                <label for="name" class="form-label text-white-50 small">Plan Name</label>
+                {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Premium Annual Plan") }}
+                {% for error in form.name.errors %}
+                <div class="invalid-feedback d-block mt-1 small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <!-- Duration in Months -->
+            <div class="col-md-6">
+                <label for="duration_months" class="form-label text-white-50 small">Duration (Months)</label>
+                {{ form.duration_months(class="form-control" + (" is-invalid" if form.duration_months.errors else ""), type="number", min="1", max="120", placeholder="e.g. 12") }}
+                {% for error in form.duration_months.errors %}
+                <div class="invalid-feedback d-block mt-1 small">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text text-secondary small">
+                    Duration in calendar months.
+                </div>
+            </div>
+            
+            <!-- Price -->
+            <div class="col-md-6">
+                <label for="price" class="form-label text-white-50 small">Plan Price ($)</label>
+                <div class="input-group">
+                    <span class="input-group-text border-0" style="background-color: #1a1d24; color: var(--text-secondary);">$</span>
+                    {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), type="number", step="0.01", placeholder="e.g. 299.99") }}
+                </div>
+                {% for error in form.price.errors %}
+                <div class="invalid-feedback d-block mt-1 small">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text text-secondary small">
+                    Pricing rate of subscription.
+                </div>
+            </div>
+        </div>
+        
+        <hr class="text-secondary my-4">
+        
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3">
+            {{ form.submit(class="btn btn-orange py-2 px-5") }}
+            <a href="{{ url_for('plans.index') }}" class="btn btn-outline-custom py-2 px-4">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

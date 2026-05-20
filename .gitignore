@@ -1,0 +1,26 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Local environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Databases
+*.db
+*.sqlite
+instance/
+
+# System logs
+logs/
+*.log
+
+# Editor configs
+.idea/
+.vscode/
+.DS_Store
